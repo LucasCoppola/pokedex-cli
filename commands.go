@@ -2,11 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/LucasCoppola/pokedex-cli/internal/pokecache"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type cliCommand struct {
@@ -33,6 +36,7 @@ type LocationResponse struct {
 }
 
 var globalConfig = Config{Next: "https://pokeapi.co/api/v2/location", Previous: nil}
+var cache = pokecache.NewCache(5 * time.Minute)
 
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
@@ -77,7 +81,31 @@ func commandExit() error {
 }
 
 func commandMap() error {
+	val, ok := cache.Get(globalConfig.Next)
+
+	// Cached Response
+	if ok {
+		fmt.Println("--Map Cached Response--")
+		var locations LocationResponse
+		err := json.Unmarshal(val, &locations)
+
+		if err != nil {
+			return err
+		}
+
+		globalConfig.Previous = locations.Previous
+		globalConfig.Next = locations.Next
+
+		for _, location := range locations.Results {
+			fmt.Println(location.Name)
+		}
+
+		return nil
+	}
+
+	// Non-Cached Response
 	res, err := http.Get(globalConfig.Next)
+
 	if err != nil {
 		return err
 	}
@@ -85,13 +113,16 @@ func commandMap() error {
 	body, err := io.ReadAll(res.Body)
 	res.Body.Close()
 
+	if err != nil {
+		return err
+	}
+
 	if res.StatusCode > 299 {
 		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
 	}
 
-	if err != nil {
-		return err
-	}
+	// Add to Cache
+	cache.Add(globalConfig.Next, body)
 
 	var locations LocationResponse
 	err = json.Unmarshal(body, &locations)
@@ -112,9 +143,32 @@ func commandMap() error {
 
 func commandMapBack() error {
 	if globalConfig.Previous == nil {
-		fmt.Print("You're on the first page")
+		return errors.New("You're on the first page")
 	}
 
+	val, ok := cache.Get(*globalConfig.Previous)
+
+	// Cached Response
+	if ok {
+		fmt.Println("--Map Back Cached Response--")
+		var locations LocationResponse
+		err := json.Unmarshal(val, &locations)
+
+		if err != nil {
+			return err
+		}
+
+		globalConfig.Previous = locations.Previous
+		globalConfig.Next = locations.Next
+
+		for _, location := range locations.Results {
+			fmt.Println(location.Name)
+		}
+
+		return nil
+	}
+
+	// Non-Cached Response
 	res, err := http.Get(*globalConfig.Previous)
 	if err != nil {
 		return err
@@ -123,13 +177,16 @@ func commandMapBack() error {
 	body, err := io.ReadAll(res.Body)
 	res.Body.Close()
 
+	if err != nil {
+		return err
+	}
+
 	if res.StatusCode > 299 {
 		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
 	}
 
-	if err != nil {
-		return err
-	}
+	// Add to Cache
+	cache.Add(*globalConfig.Previous, body)
 
 	var locations LocationResponse
 	err = json.Unmarshal(body, &locations)
@@ -146,5 +203,4 @@ func commandMapBack() error {
 	}
 
 	return nil
-
 }
