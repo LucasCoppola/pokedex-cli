@@ -18,14 +18,21 @@ func main() {
 			continue
 		}
 
+		commandName := words[0]
+		args := []string{}
+
+		if len(words) > 1 {
+			args = words[1:]
+		}
+
 		commandMap := getCommands()
-		command, ok := commandMap[words[0]]
+		command, ok := commandMap[commandName]
 
 		if !ok {
 			fmt.Println("Sorry that command doesn't exist, try running `help`")
 			continue
 		} else {
-			err := command.callback()
+			err := command.callback(args...)
 			if err != nil {
 				fmt.Println(err)
 			}
