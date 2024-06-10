@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"github.com/LucasCoppola/pokedex-cli/internal/pokecache"
@@ -8,7 +8,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(...string) error
+	Callback    func(...string) error
 }
 
 type Config struct {
@@ -20,47 +20,47 @@ type Config struct {
 var globalConfig = Config{Next: "https://pokeapi.co/api/v2/location-area", Previous: nil}
 var cache = pokecache.NewCache(5 * time.Minute)
 
-func getCommands() map[string]cliCommand {
+func GetCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
 			name:        "help",
 			description: "Displays a help message",
-			callback:    commandHelp,
+			Callback:    commandHelp,
 		},
 		"pokedex": {
 			name:        "pokedex",
 			description: "List of pokemons caught",
-			callback:    commandPokedex,
+			Callback:    commandPokedex,
 		},
 		"inspect": {
 			name:        "inspect <pokemon_name>",
 			description: "Inspect pokemon",
-			callback:    commandInspect,
+			Callback:    commandInspect,
 		},
 		"catch": {
 			name:        "catch <pokemon_name>",
 			description: "Try to catch a pokemon",
-			callback:    commandCatch,
+			Callback:    commandCatch,
 		},
 		"explore": {
 			name:        "explore <location_name>",
 			description: "Explore a location",
-			callback:    commandExplore,
+			Callback:    commandExplore,
 		},
 		"map": {
 			name:        "map",
 			description: "Display the next 20 locations in the pokemon world",
-			callback:    commandMap,
+			Callback:    commandMap,
 		},
 		"mapb": {
 			name:        "mapb",
 			description: "Display the previous 20 locations in the pokemon world",
-			callback:    commandMapBack,
+			Callback:    commandMapBack,
 		},
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
-			callback:    commandExit,
+			Callback:    commandExit,
 		},
 	}
 }

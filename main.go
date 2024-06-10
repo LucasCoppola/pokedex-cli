@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/LucasCoppola/pokedex-cli/cmd"
 	"os"
 )
 
@@ -25,14 +26,14 @@ func main() {
 			args = words[1:]
 		}
 
-		commandMap := getCommands()
+		commandMap := cmd.GetCommands()
 		command, ok := commandMap[commandName]
 
 		if !ok {
 			fmt.Println("Sorry that command doesn't exist, try running `help`")
 			continue
 		} else {
-			err := command.callback(args...)
+			err := command.Callback(args...)
 			if err != nil {
 				fmt.Println(err)
 			}
