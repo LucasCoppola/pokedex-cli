@@ -11,124 +11,21 @@ import (
 )
 
 type Pokemon struct {
-	Abilities []struct {
-		Ability struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"ability"`
-		IsHidden bool `json:"is_hidden"`
-		Slot     int  `json:"slot"`
-	} `json:"abilities"`
-	BaseExperience int `json:"base_experience"`
-	Cries          struct {
-		Latest string `json:"latest"`
-		Legacy string `json:"legacy"`
-	} `json:"cries"`
-	Forms []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"forms"`
-	GameIndices []struct {
-		GameIndex int `json:"game_index"`
-		Version   struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"version"`
-	} `json:"game_indices"`
-	Height    int `json:"height"`
-	HeldItems []struct {
-		Item struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"item"`
-		VersionDetails []struct {
-			Rarity  int `json:"rarity"`
-			Version struct {
-				Name string `json:"name"`
-				URL  string `json:"url"`
-			} `json:"version"`
-		} `json:"version_details"`
-	} `json:"held_items"`
-	ID                     int    `json:"id"`
-	IsDefault              bool   `json:"is_default"`
-	LocationAreaEncounters string `json:"location_area_encounters"`
-	Moves                  []struct {
-		Move struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"move"`
-		VersionGroupDetails []struct {
-			LevelLearnedAt  int `json:"level_learned_at"`
-			MoveLearnMethod struct {
-				Name string `json:"name"`
-				URL  string `json:"url"`
-			} `json:"move_learn_method"`
-			VersionGroup struct {
-				Name string `json:"name"`
-				URL  string `json:"url"`
-			} `json:"version_group"`
-		} `json:"version_group_details"`
-	} `json:"moves"`
-	Name          string        `json:"name"`
-	Order         int           `json:"order"`
-	PastAbilities []interface{} `json:"past_abilities"`
-	PastTypes     []interface{} `json:"past_types"`
-	Species       struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"species"`
-	Sprites struct {
-		BackDefault      string      `json:"back_default"`
-		BackFemale       interface{} `json:"back_female"`
-		BackShiny        string      `json:"back_shiny"`
-		BackShinyFemale  interface{} `json:"back_shiny_female"`
-		FrontDefault     string      `json:"front_default"`
-		FrontFemale      interface{} `json:"front_female"`
-		FrontShiny       string      `json:"front_shiny"`
-		FrontShinyFemale interface{} `json:"front_shiny_female"`
-		Other            struct {
-			DreamWorld struct {
-				FrontDefault string      `json:"front_default"`
-				FrontFemale  interface{} `json:"front_female"`
-			} `json:"dream_world"`
-			Home struct {
-				FrontDefault     string      `json:"front_default"`
-				FrontFemale      interface{} `json:"front_female"`
-				FrontShiny       string      `json:"front_shiny"`
-				FrontShinyFemale interface{} `json:"front_shiny_female"`
-			} `json:"home"`
-			OfficialArtwork struct {
-				FrontDefault string `json:"front_default"`
-				FrontShiny   string `json:"front_shiny"`
-			} `json:"official-artwork"`
-			Showdown struct {
-				BackDefault      string      `json:"back_default"`
-				BackFemale       interface{} `json:"back_female"`
-				BackShiny        string      `json:"back_shiny"`
-				BackShinyFemale  interface{} `json:"back_shiny_female"`
-				FrontDefault     string      `json:"front_default"`
-				FrontFemale      interface{} `json:"front_female"`
-				FrontShiny       string      `json:"front_shiny"`
-				FrontShinyFemale interface{} `json:"front_shiny_female"`
-			} `json:"showdown"`
-		} `json:"other"`
-	} `json:"sprites"`
-	Stats []struct {
+	BaseExperience int    `json:"base_experience"`
+	Height         int    `json:"height"`
+	Weight         int    `json:"weight"`
+	Name           string `json:"name"`
+	Stats          []struct {
 		BaseStat int `json:"base_stat"`
-		Effort   int `json:"effort"`
 		Stat     struct {
 			Name string `json:"name"`
-			URL  string `json:"url"`
 		} `json:"stat"`
 	} `json:"stats"`
 	Types []struct {
-		Slot int `json:"slot"`
 		Type struct {
 			Name string `json:"name"`
-			URL  string `json:"url"`
 		} `json:"type"`
 	} `json:"types"`
-	Weight int `json:"weight"`
 }
 
 var pokedexMap = make(map[string]Pokemon)
@@ -165,7 +62,7 @@ func commandCatch(args ...string) error {
 		return err
 	}
 
-	fmt.Printf("Throwing a Pokeball at %s...", pokemonFound.Name)
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonFound.Name)
 
 	baseExperience := pokemonFound.BaseExperience
 
@@ -178,7 +75,10 @@ func commandCatch(args ...string) error {
 		catchChance = 0
 	}
 
+	percentageChange := float64(catchChance) / float64(catchThreshold) * 100
 	isCaught := rand.IntN(catchThreshold) < catchChance
+
+	fmt.Printf("You have a %.0f%% chance of catching it.\n", percentageChange)
 
 	if isCaught {
 		_, ok := pokedexMap[pokemonFound.Name]
@@ -187,6 +87,7 @@ func commandCatch(args ...string) error {
 			fmt.Printf("\n%s has already been caught!\n", pokemonFound.Name)
 		} else {
 			fmt.Printf("\n%s was caught!\n", pokemonFound.Name)
+			fmt.Println("You may now inspect it with the inspect command.")
 			pokedexMap[pokemonFound.Name] = pokemonFound
 		}
 	} else {
